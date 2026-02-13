@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Magic Tabs | Guitar Tab Analyzer</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <h1>Magic Tabs</h1>
+      <p>Record or upload audio, then analyze into guitar tablature.</p>
+    </header>
+
+    <section class="panel controls">
+      <div class="inline center">
+        <input id="audioFile" type="file" accept="audio/*" />
+        <button id="recordBtn" class="record-btn" aria-pressed="false">
+          <span class="record-icon" aria-hidden="true"><span class="record-square"></span></span>
+          <span id="recordBtnLabel">Record</span>
+        </button>
+        <button id="analyzeBtn" class="btn btn-primary" disabled>Analyze</button>
+        <button id="clearBtn" class="btn btn-ghost">Clear</button>
+      </div>
+
+      <div class="wave-wrap">
+        <canvas id="waveCanvas" width="900" height="160"></canvas>
+      </div>
+
+      <div class="status" id="statusText">Select a file or record audio to begin.</div>
+
+      <div class="progress-wrap" id="progressWrap" hidden>
+        <div class="progress-label" id="progressLabel">Analyzing 0%</div>
+        <div class="progress-track">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel tabs-panel">
+      <h2>Tabs</h2>
+      <pre id="tabOutput" class="tab-view">e|--------------------------------|
+B|--------------------------------|
+G|--------------------------------|
+D|--------------------------------|
+A|--------------------------------|
+E|--------------------------------|</pre>
+      <div class="inline center">
+        <button id="downloadTabBtn" class="btn btn-primary">Download .txt</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
