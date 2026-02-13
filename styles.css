@@ -27,6 +27,14 @@ body {
   gap: 14px;
 }
 
+
+.test-banner {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
 .topbar h1 { margin: 0; font-size: 2rem; letter-spacing: -0.02em; }
 .topbar p { margin: 6px 0 0; color: var(--muted); }
 
