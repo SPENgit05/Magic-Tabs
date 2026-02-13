@@ -34,7 +34,7 @@ const state = {
 audioFileInput.addEventListener('change', () => {
   if (audioFileInput.files?.[0]) {
     state.recordedSamples = null;
-    statusText.textContent = 'File selected. Click Analyze.';
+    statusText.textContent = 'Media selected. Click Analyze.';
   }
   updateAnalyzeEnabled();
 });
@@ -65,8 +65,15 @@ function setProgress(percent) {
 
 async function startRecording() {
   try {
-    state.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    state.stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false
+      }
+    });
     state.context = new AudioContext();
+    await state.context.resume();
     state.source = state.context.createMediaStreamSource(state.stream);
     state.analyser = state.context.createAnalyser();
     state.analyser.fftSize = 2048;
@@ -87,6 +94,9 @@ async function startRecording() {
       state.analyser.getFloatTimeDomainData(frame);
       state.chunks.push(new Float32Array(frame));
       drawWave(frame);
+      const peak = frame.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+      if (peak < 0.005) statusText.textContent = 'Recording... waiting for input signal.';
+      else statusText.textContent = 'Recording... signal detected.';
       state.rafId = requestAnimationFrame(loop);
     };
     loop();
@@ -146,14 +156,12 @@ async function analyzeCurrentSource() {
     let samples;
     let sampleRate;
 
+    let analysisStart = 0;
     const file = audioFileInput.files?.[0];
     if (file) {
-      statusText.textContent = 'Decoding uploaded file...';
-      const context = new AudioContext();
-      const buffer = await context.decodeAudioData(await file.arrayBuffer());
-      samples = buffer.getChannelData(0);
-      sampleRate = buffer.sampleRate;
-      await context.close();
+      statusText.textContent = 'Reading uploaded media...';
+      ({ samples, sampleRate } = await loadSamplesFromFile(file));
+      analysisStart = 35;
     } else if (state.recordedSamples) {
       statusText.textContent = 'Analyzing recorded audio...';
       samples = state.recordedSamples;
@@ -162,7 +170,7 @@ async function analyzeCurrentSource() {
       throw new Error('Select a file or record audio first.');
     }
 
-    const notes = await extractNotesAsync(samples, sampleRate, (p) => setProgress(p));
+    const notes = await extractNotesAsync(samples, sampleRate, (p) => setProgress(analysisStart + p * (100 - analysisStart))); 
     renderTab(notes);
     setProgress(100);
     statusText.textContent = notes.length
@@ -176,6 +184,89 @@ async function analyzeCurrentSource() {
     audioFileInput.disabled = false;
     updateAnalyzeEnabled();
   }
+}
+
+
+async function loadSamplesFromFile(file) {
+  const type = file.type || '';
+
+  if (type.startsWith('video/')) {
+    statusText.textContent = 'Extracting audio from video...';
+    return extractSamplesWithMediaElement(file, (p) => setProgress(p * 0.35));
+  }
+
+  try {
+    const context = new AudioContext();
+    const buffer = await context.decodeAudioData(await file.arrayBuffer());
+    const channel = buffer.getChannelData(0);
+    const sampleRate = buffer.sampleRate;
+    await context.close();
+    return { samples: channel, sampleRate };
+  } catch (_err) {
+    statusText.textContent = 'Fallback media decode in progress...';
+    return extractSamplesWithMediaElement(file, (p) => setProgress(p * 0.35));
+  }
+}
+
+async function extractSamplesWithMediaElement(file, onProgress) {
+  const media = document.createElement(file.type.startsWith('video/') ? 'video' : 'audio');
+  media.preload = 'auto';
+  media.muted = true;
+  media.playsInline = true;
+  media.src = URL.createObjectURL(file);
+
+  await new Promise((resolve, reject) => {
+    media.onloadedmetadata = resolve;
+    media.onerror = () => reject(new Error('Unsupported media format or codec.'));
+  });
+
+  const context = new AudioContext();
+  await context.resume();
+  const source = context.createMediaElementSource(media);
+  const analyser = context.createAnalyser();
+  const sink = context.createGain();
+  sink.gain.value = 0;
+  analyser.fftSize = 2048;
+  source.connect(analyser);
+  analyser.connect(sink);
+  sink.connect(context.destination);
+
+  const frame = new Float32Array(analyser.fftSize);
+  const chunks = [];
+
+  await media.play();
+  await new Promise((resolve) => {
+    const loop = () => {
+      analyser.getFloatTimeDomainData(frame);
+      chunks.push(new Float32Array(frame));
+      drawWave(frame);
+
+      const duration = media.duration || 0;
+      const ratio = duration > 0 ? media.currentTime / duration : 0;
+      onProgress(Math.max(0, Math.min(1, ratio)));
+
+      if (media.ended) {
+        resolve();
+      } else {
+        requestAnimationFrame(loop);
+      }
+    };
+    loop();
+  });
+
+  const total = chunks.reduce((sum, c) => sum + c.length, 0);
+  const merged = new Float32Array(total);
+  let offset = 0;
+  for (const c of chunks) {
+    merged.set(c, offset);
+    offset += c.length;
+  }
+
+  URL.revokeObjectURL(media.src);
+  media.remove();
+  await context.close();
+
+  return { samples: merged, sampleRate: context.sampleRate || 44100 };
 }
 
 async function extractNotesAsync(samples, sampleRate, onProgress) {
