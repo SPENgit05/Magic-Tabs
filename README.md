@@ -1,15 +1,14 @@
 # Magic Tabs
 
-Magic Tabs is a lightweight browser app that converts guitar audio into readable, playable tablature.
+Magic Tabs is a browser app that converts guitar audio into playable tablature.
 
 ## Features
 
-- Upload prerecorded audio (`.wav`, `.mp3`, etc.) and generate tabs.
-- Analyze live guitar input from your microphone with a clear record/stop control.
-- Adjust detection sensitivity for cleaner or noisier environments.
-- Map detected notes to realistic string/fret positions in standard tuning.
-- See live process status indicators (idle, analyzing, recording, completed, error).
-- Download generated tabs as a plain text (`.txt`) file.
+- Record guitar directly in the app and see a live waveform while recording.
+- Upload prerecorded audio files (`.wav`, `.mp3`, etc.).
+- Analyze only when a valid source exists (recording or uploaded file).
+- Watch real-time analysis progress with a live progress bar.
+- View large, centered tab output and download as `.txt`.
 
 ## Run locally
 
@@ -19,12 +18,9 @@ python3 -m http.server 4173
 
 Open `http://localhost:4173`.
 
-## Accuracy notes
+## Basic flow
 
-This app uses a DSP-based autocorrelation pitch detector, which works best for:
-
-- single-note playing,
-- clean recordings,
-- low background noise.
-
-Polyphonic transcription (full chords, layered audio) generally requires a more advanced ML + DSP pipeline.
+1. Record audio **or** upload a file.
+2. Click **Analyze**.
+3. Wait for the progress bar to reach 100%.
+4. Read tabs in the lower panel and optionally download them.

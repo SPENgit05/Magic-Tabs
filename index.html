@@ -8,75 +8,47 @@
 </head>
 <body>
   <main class="page">
-    <div class="test-banner">test</div>
     <header class="topbar">
-      <div>
-        <h1>Magic Tabs</h1>
-        <p>Audio-to-tab transcription for uploaded files and live guitar input.</p>
-      </div>
+      <h1>Magic Tabs</h1>
+      <p>Record or upload audio, then analyze into guitar tablature.</p>
     </header>
 
     <section class="panel controls">
-      <div class="process-strip" aria-live="polite">
-        <div class="process-item" id="fileStatus" data-state="idle">
-          <span class="dot"></span>
-          <span>File analysis: <strong id="fileStatusText">Idle</strong></span>
-        </div>
-        <div class="process-item" id="liveStatus" data-state="idle">
-          <span class="dot"></span>
-          <span>Live input: <strong id="liveStatusText">Idle</strong></span>
-        </div>
+      <div class="inline center">
+        <input id="audioFile" type="file" accept="audio/*" />
+        <button id="recordBtn" class="record-btn" aria-pressed="false">
+          <span class="record-icon" aria-hidden="true"><span class="record-square"></span></span>
+          <span id="recordBtnLabel">Record</span>
+        </button>
+        <button id="analyzeBtn" class="btn btn-primary" disabled>Analyze</button>
+        <button id="clearBtn" class="btn btn-ghost">Clear</button>
       </div>
 
-      <div class="control-group">
-        <label for="audioFile">Audio file</label>
-        <div class="inline">
-          <input id="audioFile" type="file" accept="audio/*" />
-          <button id="analyzeFileBtn" class="btn btn-primary">Analyze</button>
-        </div>
+      <div class="wave-wrap">
+        <canvas id="waveCanvas" width="900" height="160"></canvas>
       </div>
 
-      <div class="control-group">
-        <label>Live input</label>
-        <div class="inline">
-          <button id="recordLiveBtn" class="record-btn" aria-pressed="false" title="Start live recording">
-            <span class="record-icon" aria-hidden="true"><span class="record-square"></span></span>
-            <span id="recordBtnLabel">Record</span>
-          </button>
-          <button id="clearLiveBtn" class="btn btn-ghost">Clear</button>
-          <div class="detected"><span>Detected</span><strong id="liveNote">—</strong></div>
-        </div>
-      </div>
+      <div class="status" id="statusText">Select a file or record audio to begin.</div>
 
-      <div class="control-group sensitivity">
-        <label for="minConfidence">Detection sensitivity</label>
-        <div class="inline">
-          <input id="minConfidence" type="range" min="0.35" max="0.9" value="0.55" step="0.01" />
-          <span id="confidenceLabel" class="value">0.55</span>
+      <div class="progress-wrap" id="progressWrap" hidden>
+        <div class="progress-label" id="progressLabel">Analyzing 0%</div>
+        <div class="progress-track">
+          <div class="progress-bar" id="progressBar"></div>
         </div>
       </div>
     </section>
 
-    <section class="layout">
-      <article class="panel">
-        <h2>Summary</h2>
-        <ul id="summary">
-          <li>Ready to analyze.</li>
-        </ul>
-      </article>
-
-      <article class="panel">
-        <div class="panel-header">
-          <h2>Tab</h2>
-          <button id="downloadTabBtn" class="btn btn-primary">Download .txt</button>
-        </div>
-        <pre id="tabOutput" class="tab-view">e|--------------------------------|
+    <section class="panel tabs-panel">
+      <h2>Tabs</h2>
+      <pre id="tabOutput" class="tab-view">e|--------------------------------|
 B|--------------------------------|
 G|--------------------------------|
 D|--------------------------------|
 A|--------------------------------|
 E|--------------------------------|</pre>
-      </article>
+      <div class="inline center">
+        <button id="downloadTabBtn" class="btn btn-primary">Download .txt</button>
+      </div>
     </section>
   </main>
 
