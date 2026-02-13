@@ -1,99 +1,26 @@
-# 🎸 Magic Tab  
+# Magic Tabs
 
-**Magic Tab** is an experimental web app that listens to music (starting with single notes) and automatically converts them into guitar tablature. The goal is to make it easy to generate tabs for any sound or melody — from simple jingles to full songs.  
+Magic Tabs is a browser app that converts guitar audio into playable tablature.
 
----
+## Features
 
-## 🚀 Project Concept  
-- Upload an audio file with clear single notes.  
-- The backend detects pitches using audio analysis.  
-- Notes are mapped to guitar strings and frets.  
-- The frontend displays the result as guitar tablature.  
+- Record guitar directly in the app and see a live waveform while recording.
+- Upload prerecorded audio **or video** files (`.wav`, `.mp3`, `.mp4`, `.mov`, etc.); video audio is extracted for analysis.
+- Analyze only when a valid source exists (recording or uploaded file).
+- Watch real-time analysis progress with a live progress bar.
+- View large, centered tab output and download as `.txt`.
 
----
+## Run locally
 
-## 📂 Project Structure  
-magic-tab/
-│
-├── backend/ # Python (Flask) API for audio analysis
-│ ├── app.py
-│ ├── analyze.py
-│ └── tests/
-│
-├── frontend/ # React web app for UI + tab display
-│ ├── src/
-│ └── public/
-│
-└── README.md
-
----
-
-## ⚙️ Tech Stack  
-
-**Backend (Python):**  
-- **Flask** → lightweight API server  
-- **Librosa** → audio analysis, pitch detection  
-- **NumPy** → numeric calculations  
-- **FFmpeg** → audio file handling  
-
-**Frontend (JavaScript):**  
-- **React** → frontend framework  
-- **Vite** → fast development/build tool  
-- **Tailwind CSS** → simple, clean UI styling  
-
----
-
-## 🛠 Installation  
-
-### Prerequisites  
-- Python **3.10+**  
-- Node.js **18+**  
-- ffmpeg (check with `ffmpeg -version`)  
-
-### Backend Setup  
 ```bash
-cd backend
-python -m venv venv
-source venv/bin/activate   # or venv\Scripts\activate on Windows
-pip install -r requirements.txt
+python3 -m http.server 4173
+```
 
-Run backend:
+Open `http://localhost:4173`.
 
-python app.py
+## Basic flow
 
-Frontend Setup
-cd frontend
-npm install
-npm run dev
-
-🎵 Usage
-
-Start backend and frontend.
-
-Open the web app in your browser.
-
-Upload an audio file (WAV/MP3 with single notes).
-
-See generated guitar tabs in the UI.
-
-✅ Current MVP Goals
-
- Upload an audio file
-
- Detect single-note pitches (monophonic)
-
- Map notes → guitar strings/frets
-
- Display basic tablature in the browser
-
-🔮 Roadmap (Future Work)
-
- Support polyphony (chords)
-
- Handle real-time recording & live input
-
- Export to Guitar Pro or MIDI formats
-
- Package as mobile app (React Native)
-
- Improve fretboard logic (choose best string/fret positions)
+1. Record audio **or** upload a file.
+2. Click **Analyze**.
+3. Wait for the progress bar to reach 100%.
+4. Read tabs in the lower panel and optionally download them.
