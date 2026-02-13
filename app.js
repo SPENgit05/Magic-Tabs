@@ -7,12 +7,16 @@ const analyzeFileBtn = document.getElementById('analyzeFileBtn');
 const tabOutput = document.getElementById('tabOutput');
 const summary = document.getElementById('summary');
 const liveNote = document.getElementById('liveNote');
-const startLiveBtn = document.getElementById('startLiveBtn');
-const stopLiveBtn = document.getElementById('stopLiveBtn');
+const recordLiveBtn = document.getElementById('recordLiveBtn');
+const recordBtnLabel = document.getElementById('recordBtnLabel');
 const clearLiveBtn = document.getElementById('clearLiveBtn');
 const minConfidence = document.getElementById('minConfidence');
 const confidenceLabel = document.getElementById('confidenceLabel');
 const downloadTabBtn = document.getElementById('downloadTabBtn');
+const fileStatus = document.getElementById('fileStatus');
+const liveStatus = document.getElementById('liveStatus');
+const fileStatusText = document.getElementById('fileStatusText');
+const liveStatusText = document.getElementById('liveStatusText');
 
 
 const EMPTY_TAB = `e|--------------------------------|
@@ -36,9 +40,11 @@ minConfidence.addEventListener('input', () => {
 });
 
 analyzeFileBtn.addEventListener('click', async () => {
+  setProcessStatus('file', 'running', 'Analyzing…');
   const file = audioFileInput.files?.[0];
   if (!file) {
     setSummary(['Please upload an audio file first.']);
+    setProcessStatus('file', 'error', 'No file selected');
     return;
   }
 
@@ -52,18 +58,20 @@ analyzeFileBtn.addEventListener('click', async () => {
 
     const notes = extractNotes(channel, audioBuffer.sampleRate, parseFloat(minConfidence.value));
     renderAnalysis(notes, `File: ${file.name}`, audioBuffer.duration);
+    setProcessStatus('file', 'done', 'Completed');
     audioContext.close();
   } catch (err) {
     setSummary([`Analysis failed: ${err.message}`]);
+    setProcessStatus('file', 'error', 'Failed');
   }
 });
 
-startLiveBtn.addEventListener('click', startLiveAnalysis);
-stopLiveBtn.addEventListener('click', stopLiveAnalysis);
+recordLiveBtn.addEventListener('click', toggleLiveAnalysis);
 clearLiveBtn.addEventListener('click', () => {
   liveState.liveNotes = [];
   renderTab([]);
   setSummary(['Live tab cleared.']);
+  setProcessStatus('live', 'idle', 'Idle');
 });
 
 downloadTabBtn.addEventListener('click', downloadCurrentTab);
@@ -71,6 +79,16 @@ downloadTabBtn.addEventListener('click', downloadCurrentTab);
 function setSummary(items) {
   summary.innerHTML = items.map((item) => `<li>${item}</li>`).join('');
 }
+
+
+function setProcessStatus(kind, state, text) {
+  const isFile = kind === 'file';
+  const wrapper = isFile ? fileStatus : liveStatus;
+  const label = isFile ? fileStatusText : liveStatusText;
+  wrapper.dataset.state = state;
+  label.textContent = text;
+}
+
 
 function extractNotes(samples, sampleRate, confidenceThreshold = 0.55) {
   const frameSize = 2048;
@@ -248,6 +266,15 @@ function renderTab(notes) {
   tabOutput.textContent = tab;
 }
 
+function toggleLiveAnalysis() {
+  if (liveState.stream) {
+    stopLiveAnalysis();
+    return;
+  }
+
+  startLiveAnalysis();
+}
+
 async function startLiveAnalysis() {
   if (liveState.stream) return;
 
@@ -259,8 +286,9 @@ async function startLiveAnalysis() {
     liveState.analyser.fftSize = 2048;
     liveState.source.connect(liveState.analyser);
 
-    startLiveBtn.disabled = true;
-    stopLiveBtn.disabled = false;
+    recordLiveBtn.setAttribute('aria-pressed', 'true');
+    recordBtnLabel.textContent = 'Stop';
+    setProcessStatus('live', 'running', 'Recording');
 
     const buffer = new Float32Array(liveState.analyser.fftSize);
     let previousCapture = 0;
@@ -289,6 +317,7 @@ async function startLiveAnalysis() {
     setSummary(['Live analysis started. Play single notes for the best tab quality.']);
   } catch (err) {
     setSummary([`Unable to access microphone: ${err.message}`]);
+    setProcessStatus('live', 'error', 'Mic error');
   }
 }
 
@@ -309,8 +338,9 @@ function stopLiveAnalysis() {
   };
 
   liveNote.textContent = '—';
-  startLiveBtn.disabled = false;
-  stopLiveBtn.disabled = true;
+  recordLiveBtn.setAttribute('aria-pressed', 'false');
+  recordBtnLabel.textContent = 'Record';
+  setProcessStatus('live', 'done', 'Stopped');
   setSummary(['Live analysis stopped.']);
 }
 

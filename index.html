@@ -16,6 +16,17 @@
     </header>
 
     <section class="panel controls">
+      <div class="process-strip" aria-live="polite">
+        <div class="process-item" id="fileStatus" data-state="idle">
+          <span class="dot"></span>
+          <span>File analysis: <strong id="fileStatusText">Idle</strong></span>
+        </div>
+        <div class="process-item" id="liveStatus" data-state="idle">
+          <span class="dot"></span>
+          <span>Live input: <strong id="liveStatusText">Idle</strong></span>
+        </div>
+      </div>
+
       <div class="control-group">
         <label for="audioFile">Audio file</label>
         <div class="inline">
@@ -27,8 +38,10 @@
       <div class="control-group">
         <label>Live input</label>
         <div class="inline">
-          <button id="startLiveBtn" class="btn">Start mic</button>
-          <button id="stopLiveBtn" class="btn" disabled>Stop mic</button>
+          <button id="recordLiveBtn" class="record-btn" aria-pressed="false" title="Start live recording">
+            <span class="record-icon" aria-hidden="true"><span class="record-square"></span></span>
+            <span id="recordBtnLabel">Record</span>
+          </button>
           <button id="clearLiveBtn" class="btn btn-ghost">Clear</button>
           <div class="detected"><span>Detected</span><strong id="liveNote">—</strong></div>
         </div>
